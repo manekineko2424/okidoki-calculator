@@ -8,12 +8,17 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var isTapped = false
+
     var body: some View {
         VStack {
             Image(systemName: "globe")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            Text("Hello, MyFirstApp!")
+            Text(isTapped ? "Button tapped!" : "Hello, MyFirstApp!")
+            Button("Toggle text") {
+                isTapped.toggle()
+            }
         }
         .padding()
     }
