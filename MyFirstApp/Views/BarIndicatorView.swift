@@ -37,29 +37,9 @@ struct BarIndicatorView: View {
     let type: BarType
     let onMove: (Int) -> Void
 
-    @GestureState private var dragState = DragState.inactive
-    @State private var cumulativeSteps: Int = 0
+    @GestureState private var dragOffset: CGFloat = 0
 
     private let rowHeight: CGFloat = 50
-
-    private enum DragState {
-        case inactive
-        case dragging(translation: CGSize)
-
-        var translation: CGSize {
-            switch self {
-            case .inactive: return .zero
-            case .dragging(let translation): return translation
-            }
-        }
-
-        var isDragging: Bool {
-            switch self {
-            case .inactive: return false
-            case .dragging: return true
-            }
-        }
-    }
 
     var body: some View {
         HStack(spacing: 10) {
@@ -80,33 +60,30 @@ struct BarIndicatorView: View {
                 .foregroundStyle(type.color)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)  // タッチ領域拡大
+        .padding(.vertical, 12)
         .background(type.backgroundColor)
         .overlay(
             RoundedRectangle(cornerRadius: 8)
                 .stroke(type.color, lineWidth: 2)
         )
         .cornerRadius(8)
-        .scaleEffect(dragState.isDragging ? 1.02 : 1.0)
-        .opacity(dragState.isDragging ? 0.85 : 1.0)
-        .animation(.easeInOut(duration: 0.1), value: dragState.isDragging)
+        .offset(y: dragOffset)  // ドラッグ中の視覚的移動
+        .scaleEffect(dragOffset != 0 ? 1.03 : 1.0)
+        .opacity(dragOffset != 0 ? 0.9 : 1.0)
+        .shadow(color: dragOffset != 0 ? .black.opacity(0.2) : .clear, radius: 4, y: 2)
+        .animation(.interactiveSpring(), value: dragOffset)
+        .zIndex(dragOffset != 0 ? 100 : 0)  // ドラッグ中は最前面に
         .contentShape(Rectangle())
-        .highPriorityGesture(
-            DragGesture(minimumDistance: 1, coordinateSpace: .local)
-                .updating($dragState) { value, state, _ in
-                    state = .dragging(translation: value.translation)
+        .gesture(
+            DragGesture(minimumDistance: 5)
+                .updating($dragOffset) { value, state, _ in
+                    state = value.translation.height
                 }
-                .onChanged { value in
-                    let totalSteps = Int(round(value.translation.height / rowHeight))
-                    let delta = totalSteps - cumulativeSteps
-
-                    if delta != 0 {
-                        cumulativeSteps = totalSteps
-                        onMove(delta)
+                .onEnded { value in
+                    let steps = Int(round(value.translation.height / rowHeight))
+                    if steps != 0 {
+                        onMove(steps)
                     }
-                }
-                .onEnded { _ in
-                    cumulativeSteps = 0
                 }
         )
     }
