@@ -37,9 +37,8 @@ struct BarIndicatorView: View {
     let type: BarType
     let onMove: (Int) -> Void
 
-    @State private var dragOffset: CGFloat = 0
     @State private var isDragging: Bool = false
-    @GestureState private var isLongPressing: Bool = false
+    @State private var lastMovedSteps: Int = 0  // 前回移動したステップ数
 
     private let rowHeight: CGFloat = 50  // 1行の高さ
 
@@ -68,26 +67,26 @@ struct BarIndicatorView: View {
                 .stroke(type.color, lineWidth: 1.5)
         )
         .cornerRadius(6)
-        .scaleEffect(isDragging ? 1.01 : 1.0)
+        .scaleEffect(isDragging ? 1.02 : 1.0)
         .opacity(isDragging ? 0.9 : 1.0)
         .contentShape(Rectangle())
         .gesture(
             DragGesture(minimumDistance: 5)
                 .onChanged { value in
                     isDragging = true
-                    let newOffset = dragOffset + value.translation.height
 
-                    // 閾値を超えたら移動
-                    let steps = Int(newOffset / rowHeight)
-                    if steps != 0 {
-                        onMove(steps)
-                        dragOffset = newOffset.truncatingRemainder(dividingBy: rowHeight)
-                    } else {
-                        dragOffset = newOffset
+                    // ドラッグ開始位置からの累積移動量を計算
+                    let totalSteps = Int(value.translation.height / rowHeight)
+
+                    // 前回から変化があった場合のみ移動
+                    let delta = totalSteps - lastMovedSteps
+                    if delta != 0 {
+                        onMove(delta)
+                        lastMovedSteps = totalSteps
                     }
                 }
                 .onEnded { _ in
-                    dragOffset = 0
+                    lastMovedSteps = 0
                     isDragging = false
                 }
         )

@@ -81,36 +81,28 @@ struct KPICard: View {
     }
 
     private var borderColor: Color {
-        if isNeg {
-            return .red
-        } else if isOK {
+        if isOK {
             return .green
         }
         return accentColor.opacity(0.6)
     }
 
     private var badgeBackground: Color {
-        if isNeg {
-            return Color(red: 1.0, green: 0.89, blue: 0.89)
-        } else if isOK {
+        if isOK {
             return Color(red: 0.86, green: 0.99, blue: 0.9)
         }
         return Color.clear
     }
 
     private var badgeBorder: Color {
-        if isNeg {
-            return Color(red: 0.94, green: 0.6, blue: 0.6)
-        } else if isOK {
+        if isOK {
             return Color(red: 0.52, green: 0.94, blue: 0.67)
         }
         return Color.clear
     }
 
     private var textColor: Color {
-        if isNeg {
-            return .red
-        } else if isOK {
+        if isOK {
             return .green
         }
         return .primary

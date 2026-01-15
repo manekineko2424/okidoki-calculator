@@ -90,13 +90,10 @@ struct RowItemView: View {
         if calc == nil {
             return .secondary
         }
-        return isOverLimit ? .secondary : .primary
+        return .primary
     }
 
     private var backgroundColor: Color {
-        if isOverLimit {
-            return Color(.systemGray5)
-        }
         return Color.white
     }
 
