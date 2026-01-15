@@ -19,14 +19,14 @@ enum BarType {
 
     var color: Color {
         switch self {
-        case .reset: return Color(red: 0.95, green: 0.75, blue: 0.1)  // ゴールド系
+        case .reset: return Color(red: 0.9, green: 0.5, blue: 0.1)  // 濃いオレンジ
         case .cut: return .blue
         }
     }
 
     var backgroundColor: Color {
         switch self {
-        case .reset: return Color(red: 1.0, green: 0.97, blue: 0.84)  // 薄いクリーム色
+        case .reset: return Color(red: 1.0, green: 0.95, blue: 0.9)  // 薄いオレンジ
         case .cut: return Color(red: 0.9, green: 0.95, blue: 1.0)
         }
     }
@@ -37,57 +37,76 @@ struct BarIndicatorView: View {
     let type: BarType
     let onMove: (Int) -> Void
 
-    @State private var isDragging: Bool = false
-    @State private var lastMovedSteps: Int = 0  // 前回移動したステップ数
+    @GestureState private var dragState = DragState.inactive
+    @State private var cumulativeSteps: Int = 0
 
-    private let rowHeight: CGFloat = 50  // 1行の高さ
+    private let rowHeight: CGFloat = 50
+
+    private enum DragState {
+        case inactive
+        case dragging(translation: CGSize)
+
+        var translation: CGSize {
+            switch self {
+            case .inactive: return .zero
+            case .dragging(let translation): return translation
+            }
+        }
+
+        var isDragging: Bool {
+            switch self {
+            case .inactive: return false
+            case .dragging: return true
+            }
+        }
+    }
 
     var body: some View {
-        HStack(spacing: 8) {
-            // ドラッグハンドル
+        HStack(spacing: 10) {
+            // 左側ドラッグハンドル
             Image(systemName: "line.3.horizontal")
-                .font(.system(size: 14, weight: .bold))
+                .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(type.color)
 
             Text(type.label)
-                .font(.system(size: 12.5, weight: .semibold))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(type.color)
 
             Spacer()
 
-            Text("ドラッグで移動")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
+            // 右側ドラッグハンドル
+            Image(systemName: "line.3.horizontal")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(type.color)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)  // タッチ領域拡大
         .background(type.backgroundColor)
         .overlay(
-            RoundedRectangle(cornerRadius: 6)
-                .stroke(type.color, lineWidth: 1.5)
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(type.color, lineWidth: 2)
         )
-        .cornerRadius(6)
-        .scaleEffect(isDragging ? 1.02 : 1.0)
-        .opacity(isDragging ? 0.9 : 1.0)
+        .cornerRadius(8)
+        .scaleEffect(dragState.isDragging ? 1.02 : 1.0)
+        .opacity(dragState.isDragging ? 0.85 : 1.0)
+        .animation(.easeInOut(duration: 0.1), value: dragState.isDragging)
         .contentShape(Rectangle())
-        .gesture(
-            DragGesture(minimumDistance: 5)
+        .highPriorityGesture(
+            DragGesture(minimumDistance: 1, coordinateSpace: .local)
+                .updating($dragState) { value, state, _ in
+                    state = .dragging(translation: value.translation)
+                }
                 .onChanged { value in
-                    isDragging = true
+                    let totalSteps = Int(round(value.translation.height / rowHeight))
+                    let delta = totalSteps - cumulativeSteps
 
-                    // ドラッグ開始位置からの累積移動量を計算
-                    let totalSteps = Int(value.translation.height / rowHeight)
-
-                    // 前回から変化があった場合のみ移動
-                    let delta = totalSteps - lastMovedSteps
                     if delta != 0 {
+                        cumulativeSteps = totalSteps
                         onMove(delta)
-                        lastMovedSteps = totalSteps
                     }
                 }
                 .onEnded { _ in
-                    lastMovedSteps = 0
-                    isDragging = false
+                    cumulativeSteps = 0
                 }
         )
     }

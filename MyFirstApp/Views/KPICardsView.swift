@@ -75,36 +75,23 @@ struct KPICard: View {
         return "—"
     }
 
-    /// neg優先：ok/neg共存時はneg（赤）
     private var backgroundColor: Color {
-        return Color(red: 1.0, green: 0.97, blue: 0.84)
+        return Color(.systemGray6)
     }
 
     private var borderColor: Color {
-        if isOK {
-            return .green
-        }
         return accentColor.opacity(0.6)
     }
 
     private var badgeBackground: Color {
-        if isOK {
-            return Color(red: 0.86, green: 0.99, blue: 0.9)
-        }
         return Color.clear
     }
 
     private var badgeBorder: Color {
-        if isOK {
-            return Color(red: 0.52, green: 0.94, blue: 0.67)
-        }
         return Color.clear
     }
 
     private var textColor: Color {
-        if isOK {
-            return .green
-        }
         return .primary
     }
 }
