@@ -35,11 +35,25 @@ enum BarType {
 /// バーインジケーター（ドラッグで移動可能）
 struct BarIndicatorView: View {
     let type: BarType
+    let currentIndex: Int   // 現在のバー位置
+    let minIndex: Int       // 移動可能な最小インデックス（上方向の限界）
+    let maxIndex: Int       // 移動可能な最大インデックス（下方向の限界）
     let onMove: (Int) -> Void
+    var onDraggingChange: ((Bool) -> Void)? = nil  // ドラッグ状態変化を通知
 
     @GestureState private var dragOffset: CGFloat = 0
 
     private let rowHeight: CGFloat = 50
+
+    /// ドラッグ可能な最小オフセット（上方向の限界）
+    private var minOffset: CGFloat {
+        CGFloat(minIndex - currentIndex) * rowHeight
+    }
+
+    /// ドラッグ可能な最大オフセット（下方向の限界）
+    private var maxOffset: CGFloat {
+        CGFloat(maxIndex - currentIndex) * rowHeight
+    }
 
     var body: some View {
         HStack(spacing: 10) {
@@ -73,14 +87,21 @@ struct BarIndicatorView: View {
         .shadow(color: dragOffset != 0 ? .black.opacity(0.2) : .clear, radius: 4, y: 2)
         .animation(.interactiveSpring(), value: dragOffset)
         .zIndex(dragOffset != 0 ? 100 : 0)  // ドラッグ中は最前面に
+        .onChange(of: dragOffset) { newValue in
+            onDraggingChange?(newValue != 0)
+        }
         .contentShape(Rectangle())
         .gesture(
             DragGesture(minimumDistance: 5)
                 .updating($dragOffset) { value, state, _ in
-                    state = value.translation.height
+                    // 範囲内に制限
+                    let rawOffset = value.translation.height
+                    state = min(max(rawOffset, minOffset), maxOffset)
                 }
                 .onEnded { value in
-                    let steps = Int(round(value.translation.height / rowHeight))
+                    // 範囲内に制限してステップ計算
+                    let clampedOffset = min(max(value.translation.height, minOffset), maxOffset)
+                    let steps = Int(round(clampedOffset / rowHeight))
                     if steps != 0 {
                         onMove(steps)
                     }
@@ -91,11 +112,11 @@ struct BarIndicatorView: View {
 
 #Preview {
     VStack(spacing: 20) {
-        BarIndicatorView(type: .reset) { delta in
+        BarIndicatorView(type: .reset, currentIndex: 2, minIndex: 1, maxIndex: 5) { delta in
             print("Reset bar moved by \(delta)")
         }
 
-        BarIndicatorView(type: .cut) { delta in
+        BarIndicatorView(type: .cut, currentIndex: 1, minIndex: 0, maxIndex: 5) { delta in
             print("Cut bar moved by \(delta)")
         }
     }

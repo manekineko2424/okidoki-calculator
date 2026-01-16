@@ -12,7 +12,7 @@ struct RowItemView: View {
     let limitG: Int
     let isAboveReset: Bool  // リセットバーより上か
     let widths: ColumnWidths
-    let focusedRowId: FocusState<UUID?>.Binding
+    @FocusState.Binding var focusedRowId: UUID?
     @Binding var gInput: String
     let onTypeChange: (HitType) -> Void
 
@@ -32,7 +32,7 @@ struct RowItemView: View {
                     .frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
                     .font(.system(size: 16))
-                    .focused(focusedRowId, equals: row.id)
+                    .focused($focusedRowId, equals: row.id)
             }
             .frame(width: widths.col2)
 

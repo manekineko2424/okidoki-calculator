@@ -29,7 +29,13 @@ struct RowGridView: View {
                     if showCutBar && cutIndex == index {
                         BarIndicatorView(
                             type: .cut,
-                            onMove: onCutBarMove
+                            currentIndex: index,
+                            minIndex: 1,              // cutも「現在」より上には移動不可
+                            maxIndex: resetIndex - 1,  // cutはreset未満まで
+                            onMove: onCutBarMove,
+                            onDraggingChange: { isDragging in
+                                draggingBarType = isDragging ? .cut : nil
+                            }
                         )
                     }
 
@@ -37,7 +43,13 @@ struct RowGridView: View {
                     if resetIndex == index {
                         BarIndicatorView(
                             type: .reset,
-                            onMove: onResetBarMove
+                            currentIndex: index,
+                            minIndex: 1,              // 「現在」より上には移動不可
+                            maxIndex: rows.count,
+                            onMove: onResetBarMove,
+                            onDraggingChange: { isDragging in
+                                draggingBarType = isDragging ? .reset : nil
+                            }
                         )
                     }
 
@@ -55,13 +67,21 @@ struct RowGridView: View {
                         onTypeChange: { onTypeChange(row.id, $0) }
                     )
                 }
+                // ドラッグ中のバーを含む行を最前面に
+                .zIndex(draggingBarAtIndex(index) ? 100 : 0)
             }
 
             // 最後の位置にもバーが来る可能性
             if resetIndex == rows.count {
                 BarIndicatorView(
                     type: .reset,
-                    onMove: onResetBarMove
+                    currentIndex: rows.count,
+                    minIndex: 1,              // 「現在」より上には移動不可
+                    maxIndex: rows.count,
+                    onMove: onResetBarMove,
+                    onDraggingChange: { isDragging in
+                        draggingBarType = isDragging ? .reset : nil
+                    }
                 )
             }
         }
@@ -76,10 +96,22 @@ struct RowGridView: View {
 
     @State private var availableWidth: CGFloat = 0
     @State private var lastFocusedRowId: UUID? = nil
+    @State private var draggingBarType: BarType? = nil
     @FocusState private var focusedRowId: UUID?
 
     private var prevRowId: UUID? {
         rows.count > 1 ? rows[1].id : nil
+    }
+
+    /// 指定インデックスにドラッグ中のバーがあるか
+    private func draggingBarAtIndex(_ index: Int) -> Bool {
+        if draggingBarType == .reset && resetIndex == index {
+            return true
+        }
+        if draggingBarType == .cut && cutIndex == index {
+            return true
+        }
+        return false
     }
 
     private var columnWidths: ColumnWidths {
