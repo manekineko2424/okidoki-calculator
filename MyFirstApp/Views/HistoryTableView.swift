@@ -2,7 +2,7 @@
 //  HistoryTableView.swift
 //  MyFirstApp
 //
-//  履歴出力テーブル
+//  履歴出力テーブル（リセットバーを行間に配置）
 //
 
 import SwiftUI
@@ -10,46 +10,87 @@ import SwiftUI
 /// 履歴出力テーブル
 struct HistoryTableView: View {
     let entries: [HistoryEntry]
-    let showResetBar: Bool
-    let onRowTap: (UUID) -> Void
-    let onRemoveResetBar: () -> Void
+    let resetIndices: [Int]  // 複数リセットバー位置
+    let maxResetIndex: Int
+    let onResetBarMove: (Int, Int) -> Void  // (barIndex, delta)
+
+    // 「現在」行が存在するか
+    private var hasCurrentRow: Bool {
+        entries.contains { $0.isCurrentRow }
+    }
+
+    // リセットバーの最小位置（現在行がある場合は1、ない場合は0）
+    private var minResetIndex: Int {
+        hasCurrentRow ? 1 : 0
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             // ヘッダー
             HistoryHeaderView()
+                .background(Color(.systemGray5))
 
             if entries.isEmpty {
                 // 空状態
                 VStack(spacing: 8) {
+                    Image(systemName: "list.bullet.rectangle")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.tertiary)
                     Text("履歴がありません")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                    Text("ゲーム数を入力して種別を選択してください")
+                    Text("G数を入力して種別を選択してください")
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 40)
             } else {
-                // 履歴リスト
-                ScrollView {
-                    LazyVStack(spacing: 0) {
-                        ForEach(entries) { entry in
-                            VStack(spacing: 0) {
-                                HistoryRowView(entry: entry) {
-                                    onRowTap(entry.id)
-                                }
+                // 履歴リスト（リセットバーを行間に配置）
+                VStack(spacing: 0) {
+                    ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
+                        // 行を表示
+                        HistoryRowView(entry: entry)
 
-                                if entry.id != entries.last?.id {
-                                    Divider()
-                                }
+                        // この位置にあるリセットバーを全て表示
+                        ForEach(Array(resetIndices.enumerated()), id: \.offset) { barIndex, resetPos in
+                            if resetPos == index + 1 && index + 1 < entries.count {
+                                BarIndicatorView(
+                                    type: .reset,
+                                    currentIndex: resetPos,
+                                    minIndex: minResetIndex,
+                                    maxIndex: maxResetIndex,
+                                    onMove: { delta in
+                                        onResetBarMove(barIndex, delta)
+                                    }
+                                )
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
                             }
                         }
 
-                        // リセットバー（最下部）
-                        if showResetBar {
-                            ResetBarView(onRemove: onRemoveResetBar)
+                        // 最後の行でなければ区切り線（リセットバーが表示される位置には入れない）
+                        let hasBarAtThisPosition = resetIndices.contains(index + 1) && index + 1 < entries.count
+                        if index < entries.count - 1 && !hasBarAtThisPosition {
+                            Divider()
+                                .padding(.horizontal, 12)
+                        }
+                    }
+
+                    // 最後の行の後（resetPos == entries.count）- 最下部の場合
+                    ForEach(Array(resetIndices.enumerated()), id: \.offset) { barIndex, resetPos in
+                        if resetPos == entries.count {
+                            BarIndicatorView(
+                                type: .reset,
+                                currentIndex: resetPos,
+                                minIndex: minResetIndex,
+                                maxIndex: maxResetIndex,
+                                onMove: { delta in
+                                    onResetBarMove(barIndex, delta)
+                                }
+                            )
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
                         }
                     }
                 }
@@ -61,46 +102,17 @@ struct HistoryTableView: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Color(.systemGray4), lineWidth: 1)
         )
-        .padding(.horizontal)
     }
+
 }
 
-/// リセットバー（簡略版）
-struct ResetBarView: View {
-    let onRemove: () -> Void
-
-    var body: some View {
-        HStack {
-            Text("🟡")
-            Text("ここで有利区間リセット")
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundStyle(.orange)
-
-            Spacer()
-
-            Button(action: onRemove) {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 12)
-        .background(Color.orange.opacity(0.1))
-        .overlay(
-            Rectangle()
-                .stroke(Color.orange.opacity(0.3), lineWidth: 1)
-        )
-    }
-}
-
-#Preview {
+#Preview("データあり") {
     VStack {
         HistoryTableView(
             entries: [
                 HistoryEntry(
                     id: UUID(),
-                    index: 1,
+                    index: 0,
                     gValue: 100,
                     type: nil,
                     calcResult: "100",
@@ -123,16 +135,22 @@ struct ResetBarView: View {
                     isCurrentRow: false
                 )
             ],
-            showResetBar: true,
-            onRowTap: { _ in },
-            onRemoveResetBar: {}
+            resetIndices: [2],
+            maxResetIndex: 3,
+            onResetBarMove: { _, _ in }
         )
+        .padding()
+    }
+}
 
+#Preview("空状態") {
+    VStack {
         HistoryTableView(
             entries: [],
-            showResetBar: false,
-            onRowTap: { _ in },
-            onRemoveResetBar: {}
+            resetIndices: [],
+            maxResetIndex: 0,
+            onResetBarMove: { _, _ in }
         )
+        .padding()
     }
 }

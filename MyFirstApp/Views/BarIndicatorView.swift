@@ -87,7 +87,7 @@ struct BarIndicatorView: View {
         .shadow(color: dragOffset != 0 ? .black.opacity(0.2) : .clear, radius: 4, y: 2)
         .animation(.interactiveSpring(), value: dragOffset)
         .zIndex(dragOffset != 0 ? 100 : 0)  // ドラッグ中は最前面に
-        .onChange(of: dragOffset) { newValue in
+        .onChange(of: dragOffset) { oldValue, newValue in
             onDraggingChange?(newValue != 0)
         }
         .contentShape(Rectangle())

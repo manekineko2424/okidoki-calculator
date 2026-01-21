@@ -11,7 +11,7 @@ struct MachineState: Codable {
     var bbAdd: String
     var limitG: String
     var rows: [Row]
-    var resetIndex: Int
+    var resetIndices: [Int]  // 複数リセットバー位置
     var cutIndex: Int?
 
     /// 機種プリセットから初期状態を生成
@@ -23,7 +23,7 @@ struct MachineState: Codable {
             bbAdd: preset.bbAdd,
             limitG: preset.limitG,
             rows: rows,
-            resetIndex: rows.count,
+            resetIndices: [],  // 初期状態はバーなし
             cutIndex: nil
         )
     }

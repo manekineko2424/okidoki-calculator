@@ -2,7 +2,7 @@
 //  HistoryRowView.swift
 //  MyFirstApp
 //
-//  履歴テーブルの1行表示
+//  履歴テーブルの1行表示（シンプル版 - 表示のみ）
 //
 
 import SwiftUI
@@ -17,46 +17,45 @@ struct HistoryEntry: Identifiable {
     let isCurrentRow: Bool  // 現在行かどうか
 }
 
-/// 履歴テーブルの1行
+/// 履歴テーブルの1行（表示のみ）
 struct HistoryRowView: View {
     let entry: HistoryEntry
-    let onTap: () -> Void
 
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 0) {
-                // 履歴列
-                Text(indexLabel)
-                    .font(.system(size: 14))
-                    .frame(width: 60, alignment: .leading)
+        HStack(spacing: 0) {
+            // 履歴列
+            Text(indexLabel)
+                .font(.system(size: 14))
+                .frame(width: 60, alignment: .center)
 
-                // 当選G数列
-                Text("\(entry.gValue)G")
-                    .font(.system(size: 14))
-                    .frame(width: 70, alignment: .trailing)
+            // 当選G数列
+            Text("\(entry.gValue)G")
+                .font(.system(size: 14))
+                .frame(width: 70, alignment: .center)
 
-                // 種別列
-                TypeBadgeView(type: entry.type)
-                    .frame(width: 60)
+            // 種別列
+            TypeBadgeView(type: entry.type)
+                .frame(width: 60, alignment: .center)
 
-                // 当選時→終了時列
-                Text(entry.calcResult)
-                    .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-            }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 12)
-            .background(entry.isCurrentRow ? Color(.systemGray6) : Color(.systemBackground))
+            // 当選時→終了時列
+            Text(entry.calcResult)
+                .font(.system(size: 13))
+                .foregroundStyle(.primary)  // グレーから通常色に変更
+                .frame(maxWidth: .infinity, alignment: .center)
         }
-        .buttonStyle(.plain)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
+        .background(Color(.systemBackground))
     }
 
     private var indexLabel: String {
         if entry.isCurrentRow {
             return "現在"
         }
-        return "\(entry.index)回目"
+        if entry.index == 1 {
+            return "前回"
+        }
+        return "\(entry.index)回前"
     }
 }
 
@@ -65,22 +64,22 @@ struct HistoryHeaderView: View {
     var body: some View {
         HStack(spacing: 0) {
             Text("履歴")
-                .frame(width: 60, alignment: .leading)
+                .frame(width: 60, alignment: .center)
 
             Text("当選G数")
-                .frame(width: 70, alignment: .trailing)
+                .frame(width: 70, alignment: .center)
 
             Text("種別")
-                .frame(width: 60)
+                .frame(width: 60, alignment: .center)
 
             Text("当選時→終了時")
-                .frame(maxWidth: .infinity, alignment: .trailing)
+                .frame(maxWidth: .infinity, alignment: .center)
         }
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.primary)  // 文字色を通常色に
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
-        .background(Color(.systemGray5))
+        .background(Color(.systemGray6))  // より明るい背景色に
     }
 }
 
@@ -96,8 +95,7 @@ struct HistoryHeaderView: View {
                 type: nil,
                 calcResult: "100",
                 isCurrentRow: true
-            ),
-            onTap: {}
+            )
         )
 
         Divider()
@@ -110,8 +108,7 @@ struct HistoryHeaderView: View {
                 type: .bb,
                 calcResult: "11G → 80G",
                 isCurrentRow: false
-            ),
-            onTap: {}
+            )
         )
 
         Divider()
@@ -124,8 +121,7 @@ struct HistoryHeaderView: View {
                 type: .rb,
                 calcResult: "135G → 164G",
                 isCurrentRow: false
-            ),
-            onTap: {}
+            )
         )
     }
 }

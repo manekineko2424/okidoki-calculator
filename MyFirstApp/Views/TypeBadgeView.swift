@@ -15,7 +15,7 @@ struct TypeBadgeView: View {
         Text(displayText)
             .font(.system(size: 11, weight: .medium))
             .foregroundStyle(.white)
-            .padding(.horizontal, 8)
+            .frame(width: 44)  // 固定幅で統一
             .padding(.vertical, 4)
             .background(backgroundColor)
             .clipShape(RoundedRectangle(cornerRadius: 4))

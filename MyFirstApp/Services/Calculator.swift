@@ -18,16 +18,33 @@ enum Calculator {
         let bbAdd = nzInt(state.bbAdd)
         let limitG = nzInt(state.limitG)
 
+        // 空配列の場合は初期値を返す（クラッシュ防止）
+        guard !state.rows.isEmpty else {
+            return ComputedMetrics(
+                currentTop: 0,
+                upperAtCut: 0,
+                normalRemain: limitG,
+                cutRemain: nil,
+                isOKNormal: false,
+                isOKCut: false,
+                rowCalcs: [:],
+                limitG: limitG
+            )
+        }
+
         var rowCalcs: [UUID: RowCalc] = [:]
 
         // nowの位置を動的に探索（rows[0]前提を外す）
         let nowIndex = state.rows.firstIndex { $0.kind == .now } ?? 0
 
+        // 最初のリセットバー位置（計算に使用）
+        let primaryResetIndex = state.resetIndices.first ?? state.rows.count
+
         // Step 1: 上側累積（🟡バーより上）
         var endTop = 0
 
         // reversed: 古い行から処理（境界に近い方が起点）
-        for i in stride(from: state.resetIndex - 1, through: 0, by: -1) {
+        for i in stride(from: primaryResetIndex - 1, through: 0, by: -1) {
             let row = state.rows[i]
 
             if row.kind == .hit {
@@ -58,7 +75,7 @@ enum Calculator {
         var upperAtCut = 0
 
         if let cutIdx = state.cutIndex {
-            for i in cutIdx..<state.resetIndex {
+            for i in cutIdx..<primaryResetIndex {
                 let row = state.rows[i]
                 if row.kind == .hit, let g = parseG(row.gInput) {
                     let addG = getAddG(type: row.type, rbAdd: rbAdd, bbAdd: bbAdd)
@@ -80,7 +97,7 @@ enum Calculator {
         // Step 4: OK判定
         // prevEndNormalの探索
         var prevEndNormal = 0
-        for i in 1..<state.resetIndex {
+        for i in 1..<primaryResetIndex {
             if i < state.rows.count, let end = rowCalcs[state.rows[i].id]?.end {
                 prevEndNormal = end
                 break
@@ -104,7 +121,7 @@ enum Calculator {
 
         // Step 5: 下側累積（表示専用）
         var lowerAccum = 0
-        for i in state.resetIndex..<state.rows.count {
+        for i in primaryResetIndex..<state.rows.count {
             let row = state.rows[i]
             if row.kind == .hit, let g = parseG(row.gInput) {
                 let addG = getAddG(type: row.type, rbAdd: rbAdd, bbAdd: bbAdd)

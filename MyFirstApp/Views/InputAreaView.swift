@@ -2,7 +2,7 @@
 //  InputAreaView.swift
 //  MyFirstApp
 //
-//  分離型UI - 入力エリア
+//  分離型UI - 入力エリア（シンプル版）
 //
 
 import SwiftUI
@@ -10,178 +10,144 @@ import SwiftUI
 /// 入力エリア
 struct InputAreaView: View {
     @Binding var gInput: String
-    let isFirstEntry: Bool  // 初回入力かどうか（履歴が空）
-    let isEditMode: Bool    // 編集モードかどうか
-    let onTypeSelect: (HitType?) -> Void  // 種別選択時のコールバック（nilは「現在」）
-    let onDeleteOne: () -> Void
-    let onDeleteAll: () -> Void
-    let onAddResetBar: () -> Void
-    let onCancelEdit: () -> Void
+    let hasCurrentRow: Bool  // 「現在」行が既に存在するか
+    let onRegister: (HitType?) -> Void  // 登録コールバック（nilは「現在」）
+
+    @FocusState private var isInputFocused: Bool
 
     var body: some View {
-        VStack(spacing: 12) {
-            // ゲーム数入力
-            HStack {
-                Text("ゲーム数")
-                    .font(.subheadline)
+        VStack(spacing: 16) {
+            // G数入力フィールド
+            VStack(spacing: 8) {
+                Text("G数を入力")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                Spacer()
+                HStack(spacing: 12) {
+                    TextField("0", text: $gInput)
+                        .keyboardType(.numberPad)
+                        .font(.system(size: 32, weight: .semibold, design: .rounded))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color(.systemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(isInputFocused ? Color.accentColor : Color(.systemGray4), lineWidth: isInputFocused ? 2 : 1)
+                        )
+                        .focused($isInputFocused)
 
-                TextField("", text: $gInput)
-                    .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 100)
-                    .multilineTextAlignment(.trailing)
-                    .font(.system(size: 16))
-
-                Text("G")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    Text("G")
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
             }
-            .padding(.horizontal)
 
-            // 種別ボタン
-            VStack(alignment: .leading, spacing: 8) {
-                Text("種別")
-                    .font(.subheadline)
+            // 種別ボタン（タップで即登録）
+            VStack(spacing: 8) {
+                Text("種別を選択して登録")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
-                    .padding(.horizontal)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                HStack(spacing: 8) {
-                    // 現在ボタン
-                    TypeButton(
-                        title: "現在",
-                        isEnabled: isFirstEntry,
-                        color: .gray
-                    ) {
-                        onTypeSelect(nil)
+                HStack(spacing: 10) {
+                    // 「現在」ボタン（現在行がない場合のみ有効）
+                    if !hasCurrentRow {
+                        RegisterButton(
+                            title: "現在",
+                            color: .gray,
+                            isEnabled: isValidInput
+                        ) {
+                            onRegister(nil)
+                        }
                     }
 
                     // RBボタン
-                    TypeButton(
+                    RegisterButton(
                         title: "RB",
-                        isEnabled: !isFirstEntry,
-                        color: .blue
+                        color: .blue,
+                        isEnabled: isValidInput && hasCurrentRow
                     ) {
-                        onTypeSelect(.rb)
+                        onRegister(.rb)
                     }
 
                     // BBボタン
-                    TypeButton(
+                    RegisterButton(
                         title: "BB",
-                        isEnabled: !isFirstEntry,
-                        color: .red
+                        color: .red,
+                        isEnabled: isValidInput && hasCurrentRow
                     ) {
-                        onTypeSelect(.bb)
+                        onRegister(.bb)
                     }
 
                     // 最終ボタン
-                    TypeButton(
+                    RegisterButton(
                         title: "最終",
-                        isEnabled: !isFirstEntry,
-                        color: .primary
+                        color: .primary,
+                        isEnabled: isValidInput && hasCurrentRow
                     ) {
-                        onTypeSelect(.fin)
+                        onRegister(.fin)
                     }
                 }
-                .padding(.horizontal)
             }
-
-            // 編集モード時のキャンセルボタン
-            if isEditMode {
-                Button(action: onCancelEdit) {
-                    Text("編集をキャンセル")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.top, 4)
-            }
-
-            Divider()
-                .padding(.vertical, 4)
-
-            // アクションボタン
-            HStack(spacing: 8) {
-                InputActionButton(title: "1つ削除", action: onDeleteOne)
-                InputActionButton(title: "全削除", isDestructive: true, action: onDeleteAll)
-                InputActionButton(title: "リセット位置", action: onAddResetBar)
-            }
-            .padding(.horizontal)
         }
-        .padding(.vertical, 12)
+        .padding(16)
         .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .padding(.horizontal)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .onAppear {
+            isInputFocused = true
+        }
+    }
+
+    private var isValidInput: Bool {
+        guard let value = Int(gInput), value > 0 else { return false }
+        return true
     }
 }
 
-/// 種別ボタン
-struct TypeButton: View {
+/// 登録ボタン
+struct RegisterButton: View {
     let title: String
-    let isEnabled: Bool
     let color: Color
+    let isEnabled: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(isEnabled ? .white : .gray)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
+                .padding(.vertical, 16)
                 .background(isEnabled ? color : Color(.systemGray5))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .disabled(!isEnabled)
     }
 }
 
-/// アクションボタン（入力エリア用）
-private struct InputActionButton: View {
-    let title: String
-    var isDestructive: Bool = false
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(isDestructive ? .red : .primary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-                .background(Color(.systemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(isDestructive ? Color.red.opacity(0.3) : Color(.systemGray4), lineWidth: 1)
-                )
-        }
-    }
-}
-
-#Preview {
+#Preview("初回入力（現在行なし）") {
     VStack {
         InputAreaView(
             gInput: .constant("100"),
-            isFirstEntry: true,
-            isEditMode: false,
-            onTypeSelect: { _ in },
-            onDeleteOne: {},
-            onDeleteAll: {},
-            onAddResetBar: {},
-            onCancelEdit: {}
+            hasCurrentRow: false,
+            onRegister: { _ in }
         )
+        .padding()
+    }
+    .background(Color(.systemBackground))
+}
 
+#Preview("通常入力（現在行あり）") {
+    VStack {
         InputAreaView(
             gInput: .constant("200"),
-            isFirstEntry: false,
-            isEditMode: true,
-            onTypeSelect: { _ in },
-            onDeleteOne: {},
-            onDeleteAll: {},
-            onAddResetBar: {},
-            onCancelEdit: {}
+            hasCurrentRow: true,
+            onRegister: { _ in }
         )
+        .padding()
     }
+    .background(Color(.systemBackground))
 }

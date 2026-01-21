@@ -34,16 +34,9 @@ struct Row: Identifiable, Codable {
         self.type = type
     }
 
-    /// 初期行を生成
+    /// 初期行を生成（初期状態は空）
     static func initialRows() -> [Row] {
-        [
-            Row(kind: .now, label: "現在"),
-            Row(kind: .hit, label: "前回"),
-            Row(kind: .hit, label: "2回前"),
-            Row(kind: .hit, label: "3回前"),
-            Row(kind: .hit, label: "4回前"),
-            Row(kind: .hit, label: "5回前")
-        ]
+        []
     }
 
     /// ラベルを生成（インデックスから）
@@ -62,13 +55,13 @@ struct Row: Identifiable, Codable {
 /// G数入力のパース
 /// - 空文字 → nil
 /// - 非数値 → nil
-/// - 0〜10050にクランプ
+/// - 0〜1050にクランプ
 func parseG(_ value: String) -> Int? {
     let trimmed = value.trimmingCharacters(in: .whitespaces)
     guard !trimmed.isEmpty else { return nil }
     guard let num = Double(trimmed) else { return nil }
     let truncated = Int(num)
-    return max(0, min(truncated, 10050))
+    return max(0, min(truncated, 1050))
 }
 
 /// 設定値のパース（Non-Zero Int）

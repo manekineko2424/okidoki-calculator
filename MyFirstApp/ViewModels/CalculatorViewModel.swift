@@ -16,8 +16,6 @@ class CalculatorViewModel {
     // MARK: - 入力エリア状態（分離型UI用）
 
     var inputGValue: String = ""        // 入力中のゲーム数
-    var editingRowId: UUID? = nil       // 編集中の行ID（nilなら新規入力モード）
-    var showResetBar: Bool = false      // リセットバー表示フラグ
 
     // MARK: - Computed Properties
 
@@ -52,17 +50,19 @@ class CalculatorViewModel {
         }
     }
 
-    var resetIndex: Int {
-        get { currentState.resetIndex }
+    var resetIndices: [Int] {
+        get { currentState.resetIndices }
         set {
             var state = currentState
-            state.resetIndex = max(0, min(newValue, state.rows.count))
-            // cutIndexがresetIndexを超えないように調整
-            if let cut = state.cutIndex, cut >= state.resetIndex {
-                state.cutIndex = nil
-            }
+            // 各インデックスを範囲内に制限
+            state.resetIndices = newValue.map { max(0, min($0, state.rows.count)) }
             currentState = state
         }
+    }
+
+    /// 計算用の最初のリセットバー位置
+    var primaryResetIndex: Int {
+        resetIndices.first ?? rows.count
     }
 
     var cutIndex: Int? {
@@ -151,7 +151,7 @@ class CalculatorViewModel {
 
         var state = currentState
         state.rows = updatedRows
-        state.resetIndex += 1
+        state.resetIndices = state.resetIndices.map { $0 + 1 }
         if let cut = state.cutIndex {
             state.cutIndex = cut + 1
         }
@@ -167,7 +167,7 @@ class CalculatorViewModel {
 
         var state = currentState
         state.rows = updatedRows
-        state.resetIndex = max(0, state.resetIndex - 1)
+        state.resetIndices = state.resetIndices.map { max(0, $0 - 1) }
         if let cut = state.cutIndex {
             state.cutIndex = cut > 1 ? cut - 1 : nil
         }
@@ -191,7 +191,7 @@ class CalculatorViewModel {
 
         var state = currentState
         state.rows = updatedRows
-        state.resetIndex = min(state.resetIndex, updatedRows.count)
+        state.resetIndices = state.resetIndices.map { min($0, updatedRows.count) }
         if let cut = state.cutIndex, cut >= updatedRows.count {
             state.cutIndex = nil
         }
@@ -202,29 +202,33 @@ class CalculatorViewModel {
     func clearAll() {
         var state = currentState
         state.rows = Row.initialRows()
-        state.resetIndex = state.rows.count
+        state.resetIndices = []  // バーも全削除
         state.cutIndex = nil
         currentState = state
     }
 
-    /// リセットバーを移動
-    func moveResetBar(by delta: Int) {
-        resetIndex = resetIndex + delta
+    /// 特定のリセットバーを移動
+    func moveResetBar(at barIndex: Int, by delta: Int) {
+        guard barIndex < resetIndices.count else { return }
+        var indices = resetIndices
+        let newValue = max(0, min(indices[barIndex] + delta, rows.count))
+        indices[barIndex] = newValue
+        resetIndices = indices
     }
 
     /// 切断バーを移動
     func moveCutBar(by delta: Int) {
         if let current = cutIndex {
             let newIndex = current + delta
-            if newIndex >= 0 && newIndex < resetIndex {
+            if newIndex >= 0 && newIndex < primaryResetIndex {
                 cutIndex = newIndex
             } else if newIndex < 0 {
                 cutIndex = nil
             }
         } else {
-            // 初回は resetIndex - 1 に配置
-            if resetIndex > 0 {
-                cutIndex = resetIndex - 1
+            // 初回は primaryResetIndex - 1 に配置
+            if primaryResetIndex > 0 {
+                cutIndex = primaryResetIndex - 1
             }
         }
     }
@@ -251,9 +255,9 @@ class CalculatorViewModel {
         rows.isEmpty
     }
 
-    /// 編集モードかどうか
-    var isEditMode: Bool {
-        editingRowId != nil
+    /// 「現在」行が存在するかどうか
+    var hasCurrentRow: Bool {
+        rows.contains { $0.kind == .now }
     }
 
     /// 履歴エントリ一覧（表示用）
@@ -268,13 +272,18 @@ class CalculatorViewModel {
             let calcResult: String
             if isCurrentRow {
                 if let current = calc?.current {
-                    calcResult = "\(current)"
+                    calcResult = "\(current)G"  // G単位を追加
                 } else {
                     calcResult = ""
                 }
             } else {
                 if let hit = calc?.hit, let end = calc?.end {
-                    calcResult = "\(hit)G → \(end)G"
+                    // 「最終」(fin)は内部加算0Gなので単一値表示
+                    if row.type == .fin {
+                        calcResult = "\(hit)G"
+                    } else {
+                        calcResult = "\(hit)G → \(end)G"
+                    }
                 } else {
                     calcResult = ""
                 }
@@ -309,18 +318,10 @@ class CalculatorViewModel {
 
     // MARK: - 分離型UI用アクション
 
-    /// 種別ボタン押下で登録
+    /// 種別ボタン押下で登録（新規のみ）
     func registerEntry(type: HitType?) {
         guard let gValue = parseG(inputGValue), gValue > 0 else { return }
-
-        if let editingId = editingRowId {
-            // 編集モード: 既存行を更新
-            updateRow(id: editingId, gInput: inputGValue, type: type)
-            cancelEdit()
-        } else {
-            // 新規登録
-            addNewEntry(gValue: inputGValue, type: type)
-        }
+        addNewEntry(gValue: inputGValue, type: type)
     }
 
     /// 新規エントリ追加
@@ -332,99 +333,71 @@ class CalculatorViewModel {
             let newRow = Row(kind: .now, label: "現在", gInput: gValue)
             updatedRows.insert(newRow, at: 0)
         } else {
-            // hit行を追加
+            // hit行を追加（末尾に追加）
             let newRow = Row(kind: .hit, label: "", gInput: gValue, type: type!)
-            if updatedRows.isEmpty {
-                updatedRows.append(newRow)
-            } else {
-                // 現在行の次に挿入
-                updatedRows.insert(newRow, at: 1)
-            }
+            updatedRows.append(newRow)
         }
 
         updateLabels(&updatedRows)
 
         var state = currentState
         state.rows = updatedRows
-        // リセットインデックス調整
-        if type != nil && state.resetIndex > 0 {
-            state.resetIndex += 1
+        // 「現在」行（先頭挿入）の場合のみ、全てのインデックスを+1
+        if type == nil {
+            state.resetIndices = state.resetIndices.map { $0 + 1 }
+            if let cut = state.cutIndex {
+                state.cutIndex = cut + 1
+            }
         }
+        // hit行（末尾追加）の場合は更新不要
         currentState = state
 
         // 入力クリア
         inputGValue = ""
     }
 
-    /// 行を更新
-    private func updateRow(id: UUID, gInput: String, type: HitType?) {
-        guard let index = rows.firstIndex(where: { $0.id == id }) else { return }
-        var updatedRows = rows
-        updatedRows[index].gInput = gInput
-        if let type = type {
-            updatedRows[index].type = type
-        }
-        rows = updatedRows
-    }
-
-    /// 行タップで編集モード開始
-    func startEdit(rowId: UUID) {
-        guard let row = rows.first(where: { $0.id == rowId }) else { return }
-        editingRowId = rowId
-        inputGValue = row.gInput
-    }
-
-    /// 編集キャンセル
-    func cancelEdit() {
-        editingRowId = nil
-        inputGValue = ""
-    }
-
-    /// 1つ削除（最新の履歴を削除）
+    /// 1つ削除（一番下の行＝最も古い履歴を削除）
     func deleteOne() {
         guard !rows.isEmpty else { return }
 
         var updatedRows = rows
-        // 現在行があれば現在行を削除、なければ最初のhit行を削除
-        if let nowIndex = updatedRows.firstIndex(where: { $0.kind == .now }) {
-            updatedRows.remove(at: nowIndex)
-        } else if updatedRows.count > 0 {
-            updatedRows.remove(at: 0)
-        }
+        // 一番下の行（最も古い履歴）を削除
+        updatedRows.removeLast()
 
         updateLabels(&updatedRows)
 
         var state = currentState
         state.rows = updatedRows
-        state.resetIndex = max(0, min(state.resetIndex - 1, updatedRows.count))
+        // リセットインデックスを範囲内に制限（行数が減った分）
+        state.resetIndices = state.resetIndices.map { min($0, updatedRows.count) }
+        if let cut = state.cutIndex, cut >= updatedRows.count {
+            state.cutIndex = nil
+        }
         currentState = state
-
-        cancelEdit()
     }
 
     /// 全削除
     func deleteAll() {
         var state = currentState
         state.rows = []
-        state.resetIndex = 0
+        state.resetIndices = []  // 全バー削除
         state.cutIndex = nil
         currentState = state
-        showResetBar = false
-        cancelEdit()
     }
 
     /// リセットバーを追加（最下部）
     func addResetBar() {
-        showResetBar = true
-        // リセットインデックスを最後に設定
-        var state = currentState
-        state.resetIndex = state.rows.count
-        currentState = state
+        var indices = resetIndices
+        indices.append(rows.count)
+        resetIndices = indices
     }
 
-    /// リセットバーを削除
-    func removeResetBar() {
-        showResetBar = false
+    /// リセットバーを削除（直近追加を削除）
+    func removeLastResetBar() {
+        guard !resetIndices.isEmpty else { return }
+        var indices = resetIndices
+        indices.removeLast()
+        resetIndices = indices
     }
 
     // MARK: - Private Methods
