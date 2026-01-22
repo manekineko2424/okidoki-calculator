@@ -12,7 +12,7 @@ This file provides guidance to Claude Code when working with this repository.
 
 ```bash
 # ビルド
-xcodebuild -project MyFirstApp.xcodeproj -scheme MyFirstApp -destination 'platform=iOS Simulator,name=iPhone 16' build
+xcodebuild -project MyFirstApp.xcodeproj -scheme MyFirstApp -destination 'platform=iOS Simulator,name=iPhone 17' build
 ```
 
 ## アーキテクチャ
