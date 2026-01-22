@@ -175,7 +175,7 @@ struct ContentView: View {
         VStack(spacing: 8) {
             // タイトル行
             HStack {
-                Text("沖ドキ有利区間G数計算ツール")
+                Text("沖ドキ！有利区間ゲーム数計算ツール")
                     .font(.system(size: 15, weight: .bold))
 
                 Spacer()
