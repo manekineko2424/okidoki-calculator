@@ -8,7 +8,7 @@
 
 ### プライバシーポリシー
 
-「有利区間G数計算ツール」（以下、「本アプリ」）は、以下の方針に基づきお客様の情報を取り扱います。
+「沖ドキ！有利区間ゲーム数計算ツール」（以下、「本アプリ」）は、以下の方針に基づきお客様の情報を取り扱います。
 
 #### 1. 個人情報の収集について
 
@@ -44,7 +44,7 @@
 
 ### Privacy Policy
 
-This privacy policy describes how "Yuuri Kukan G Count Calculator" (the "App") handles your information.
+This privacy policy describes how "OkiDoki! Yuuri Kukan Game Count Calculator" (the "App") handles your information.
 
 #### 1. Information Collection
 
