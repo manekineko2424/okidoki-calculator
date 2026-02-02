@@ -49,8 +49,9 @@ struct HistoryTableView: View {
                 // 履歴リスト（リセットバーを行間に配置）
                 VStack(spacing: 0) {
                     ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
-                        // 行を表示
+                        // 行を表示（自動スクロール用にIDを付与）
                         HistoryRowView(entry: entry)
+                            .id(entry.id)
 
                         // この位置にあるリセットバーを全て表示
                         ForEach(Array(resetIndices.enumerated()), id: \.offset) { barIndex, resetPos in

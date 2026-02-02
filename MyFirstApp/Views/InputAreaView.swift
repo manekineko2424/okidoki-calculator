@@ -16,84 +16,80 @@ struct InputAreaView: View {
     @FocusState private var isInputFocused: Bool
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 8) {
             // G数入力フィールド
-            VStack(spacing: 8) {
-                Text("G数を入力")
-                    .font(.caption)
+            Text("G数を入力")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            HStack(spacing: 12) {
+                TextField("0", text: $gInput)
+                    .keyboardType(.numberPad)
+                    .font(.system(size: 24, weight: .semibold, design: .rounded))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 6)
+                    .background(Color(.systemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(isInputFocused ? Color.accentColor : Color(.systemGray4), lineWidth: isInputFocused ? 2 : 1)
+                    )
+                    .focused($isInputFocused)
+
+                Text("G")
+                    .font(.system(size: 20, weight: .medium))
                     .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                HStack(spacing: 12) {
-                    TextField("0", text: $gInput)
-                        .keyboardType(.numberPad)
-                        .font(.system(size: 32, weight: .semibold, design: .rounded))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .background(Color(.systemBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(isInputFocused ? Color.accentColor : Color(.systemGray4), lineWidth: isInputFocused ? 2 : 1)
-                        )
-                        .focused($isInputFocused)
-
-                    Text("G")
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundStyle(.secondary)
-                }
             }
 
             // 種別ボタン（タップで即登録）
-            VStack(spacing: 8) {
-                Text("種別を選択して登録")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            Text("種別を選択して登録")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                HStack(spacing: 10) {
-                    // 「現在」ボタン（現在行がない場合のみ有効）
-                    if !hasCurrentRow {
-                        RegisterButton(
-                            title: "現在",
-                            color: .gray,
-                            isEnabled: isValidInput
-                        ) {
-                            onRegister(nil)
-                        }
-                    }
-
-                    // RBボタン
+            HStack(spacing: 10) {
+                // 「現在」ボタン（現在行がない場合のみ有効）
+                if !hasCurrentRow {
                     RegisterButton(
-                        title: "RB",
-                        color: .blue,
-                        isEnabled: isValidInput && hasCurrentRow
+                        title: "現在",
+                        color: .gray,
+                        isEnabled: isValidInput
                     ) {
-                        onRegister(.rb)
+                        onRegister(nil)
                     }
+                }
 
-                    // BBボタン
-                    RegisterButton(
-                        title: "BB",
-                        color: .red,
-                        isEnabled: isValidInput && hasCurrentRow
-                    ) {
-                        onRegister(.bb)
-                    }
+                // RBボタン
+                RegisterButton(
+                    title: "RB",
+                    color: .blue,
+                    isEnabled: isValidInput && hasCurrentRow
+                ) {
+                    onRegister(.rb)
+                }
 
-                    // 最終ボタン
-                    RegisterButton(
-                        title: "最終",
-                        color: .primary,
-                        isEnabled: isValidInput && hasCurrentRow
-                    ) {
-                        onRegister(.fin)
-                    }
+                // BBボタン
+                RegisterButton(
+                    title: "BB",
+                    color: .red,
+                    isEnabled: isValidInput && hasCurrentRow
+                ) {
+                    onRegister(.bb)
+                }
+
+                // 最終ボタン
+                RegisterButton(
+                    title: "最終",
+                    color: .primary,
+                    isEnabled: isValidInput && hasCurrentRow
+                ) {
+                    onRegister(.fin)
                 }
             }
         }
-        .padding(16)
+        .padding(12)
         .background(Color(.systemGray6))
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .onAppear {
@@ -120,7 +116,7 @@ struct RegisterButton: View {
                 .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(isEnabled ? .white : .gray)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
+                .padding(.vertical, 10)
                 .background(isEnabled ? color : Color(.systemGray5))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
         }
