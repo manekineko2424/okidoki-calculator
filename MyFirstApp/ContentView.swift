@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var showSettings = false
     @State private var showClearConfirm = false
     @State private var isKeyboardVisible = false
+    @State private var modelSwitchCount = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -144,8 +145,12 @@ struct ContentView: View {
                 }
             }
 
-            // 下部: 機種選択タブバー（キーボード非表示時のみ表示）
+            // 下部: バナー広告 + 機種選択タブバー（キーボード非表示時のみ表示）
             if !isKeyboardVisible {
+                // バナー広告
+                BannerAdView(adUnitID: AdConfig.bannerAdUnitID)
+                    .frame(height: BannerAdHeight.adaptive)
+
                 MachineTabBar(
                     selectedModel: Binding(
                         get: { viewModel.currentModel },
@@ -185,6 +190,15 @@ struct ContentView: View {
         .onTapGesture {
             // キーボードを閉じる
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
+        .onChange(of: viewModel.currentModel) { oldValue, newValue in
+            if oldValue != newValue {
+                modelSwitchCount += 1
+                if modelSwitchCount >= 3 {
+                    AdMobManager.shared.showInterstitialAd()
+                    modelSwitchCount = 0
+                }
+            }
         }
         .background(Color(.systemBackground).ignoresSafeArea())
     }
