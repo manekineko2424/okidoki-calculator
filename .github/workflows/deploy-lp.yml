@@ -1,0 +1,40 @@
+name: Deploy LP to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app-lp/**'
+      - '!app-lp/mockup-renderer/**'
+      - '!app-lp/REVIEW.md'
+      - '!app-lp/figma-prompt.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare site
+        run: |
+          mkdir _site
+          cp app-lp/index.html app-lp/guide.html app-lp/privacy.html _site/
+          cp -r app-lp/assets _site/assets
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>使い方ガイド - 沖ドキ！有利区間ゲーム数計算ツール</title>
+  <meta name="description" content="沖ドキ！有利区間ゲーム数計算ツールの使い方ガイドです。基本操作から2つの入力モードまで簡潔に解説します。">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS v4 CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans JP"', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+</head>
+<body class="font-sans text-slate-700 bg-white">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-sky-600 to-sky-400 text-white py-4">
+    <div class="max-w-3xl mx-auto px-4">
+      <a href="index.html" class="text-sm opacity-80 hover:opacity-100 transition-opacity">&larr; トップページに戻る</a>
+      <h1 class="text-2xl md:text-3xl font-black mt-2">使い方ガイド</h1>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="max-w-3xl mx-auto px-4 py-8">
+
+    <!-- ========== 1. 基本の流れ ========== -->
+    <section class="mb-12">
+      <h2 class="text-xl md:text-2xl font-bold text-slate-900 mb-6">基本の流れ</h2>
+
+      <div class="space-y-8">
+        <!-- Step 1 -->
+        <div>
+          <div class="flex items-center gap-3 mb-3">
+            <span class="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center font-bold text-sm">1</span>
+            <h3 class="text-lg font-bold text-slate-900">機種を選ぶ</h3>
+          </div>
+          <p class="text-slate-600 mb-3 ml-11">下部のタブから機種を選択します。</p>
+          <img src="assets/images/screenshot-04.png" alt="機種選択タブ" loading="lazy"
+               class="rounded-2xl shadow-md max-w-[220px] mx-auto">
+        </div>
+
+        <!-- Step 2 -->
+        <div>
+          <div class="flex items-center gap-3 mb-3">
+            <span class="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center font-bold text-sm">2</span>
+            <h3 class="text-lg font-bold text-slate-900">G数を入力してボタンをタップ</h3>
+          </div>
+          <p class="text-slate-600 mb-3 ml-11">G数を入力して RB / BB / 最終 をタップ。</p>
+          <img src="assets/images/screenshot-02.png" alt="G数入力エリア" loading="lazy"
+               class="rounded-2xl shadow-md max-w-[220px] mx-auto">
+        </div>
+
+        <!-- Step 3 -->
+        <div>
+          <div class="flex items-center gap-3 mb-3">
+            <span class="flex-shrink-0 w-8 h-8 bg-sky-500 text-white rounded-full flex items-center justify-center font-bold text-sm">3</span>
+            <h3 class="text-lg font-bold text-slate-900">残りG数を確認</h3>
+          </div>
+          <p class="text-slate-600 mb-3 ml-11">残りG数が自動で計算・表示されます。</p>
+          <img src="assets/images/screenshot-01.png" alt="残りG数表示" loading="lazy"
+               class="rounded-2xl shadow-md max-w-[220px] mx-auto">
+        </div>
+      </div>
+    </section>
+
+    <hr class="border-slate-200 mb-12">
+
+    <!-- ========== 2. 2つの入力モード ========== -->
+    <section class="mb-12">
+      <h2 class="text-xl md:text-2xl font-bold text-slate-900 mb-4">2つの入力モード</h2>
+      <p class="text-slate-600 mb-8">カプセル型の切替ボタンをタップして、モードを切り替えます。</p>
+
+      <div class="grid gap-6 md:grid-cols-2">
+        <!-- 履歴入力モード -->
+        <div class="rounded-2xl border-2 border-sky-400 bg-sky-50 p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="inline-block bg-sky-500 text-white text-xs font-bold px-3 py-1 rounded-full">履歴入力モード</span>
+          </div>
+          <p class="text-sm font-bold text-slate-800 mb-2">台の途中から打ち始めるとき</p>
+          <ul class="text-sm text-slate-600 space-y-1">
+            <li>・ データサイトの履歴を入力</li>
+            <li>・ 過去の当選を下に追加していく</li>
+            <li>・ すべて入力後に「現在G数」を記録して実戦開始</li>
+          </ul>
+        </div>
+
+        <!-- 実戦入力モード -->
+        <div class="rounded-2xl border-2 border-orange-400 bg-orange-50 p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="inline-block bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">実戦入力モード</span>
+          </div>
+          <p class="text-sm font-bold text-slate-800 mb-2">リアルタイムで記録するとき</p>
+          <ul class="text-sm text-slate-600 space-y-1">
+            <li>・ ボーナスを引いたら即入力</li>
+            <li>・ 新しい当選が上に追加される</li>
+            <li>・ 朝一からの実戦に最適</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <hr class="border-slate-200 mb-12">
+
+    <!-- ========== 3. おすすめの使い方 ========== -->
+    <section class="mb-12">
+      <h2 class="text-xl md:text-2xl font-bold text-slate-900 mb-6">おすすめの使い方</h2>
+
+      <div class="space-y-8">
+        <!-- パターンA -->
+        <div class="bg-slate-50 rounded-2xl p-6">
+          <h3 class="text-lg font-bold text-slate-900 mb-3">パターンA: 台の途中から打つ場合</h3>
+          <ol class="text-sm text-slate-600 space-y-2 list-decimal list-inside">
+            <li><span class="font-bold text-sky-600">履歴入力モード</span>でデータサイトの当選履歴を古い順に入力</li>
+            <li>すべて入力したら、<span class="font-bold text-orange-600">実戦入力モード</span>に切り替え</li>
+            <li>「現在G数」を入力してスタート</li>
+            <li>以降はボーナスを引くたびにそのまま記録</li>
+          </ol>
+        </div>
+
+        <!-- パターンB -->
+        <div class="bg-slate-50 rounded-2xl p-6">
+          <h3 class="text-lg font-bold text-slate-900 mb-3">パターンB: 朝一から打つ場合</h3>
+          <ol class="text-sm text-slate-600 space-y-2 list-decimal list-inside">
+            <li><span class="font-bold text-orange-600">実戦入力モード</span>のまま使用</li>
+            <li>ボーナスを引いたら当選G数を入力して記録</li>
+            <li>残りゲーム数を随時確認しながら実戦</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <hr class="border-slate-200 mb-12">
+
+    <!-- ========== 4. さらに詳しく ========== -->
+    <section class="text-center">
+      <p class="text-slate-600 mb-4">画面の見方や計算の仕組みなど、より詳しい解説はこちらをご覧ください。</p>
+      <a href="https://note.com/kitaiozi_line/n/nab9d59c69e7e" target="_blank" rel="noopener noreferrer"
+         class="inline-block bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-6 py-3 rounded-full transition-colors">
+        さらに詳しい使い方はこちら &rarr;
+      </a>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 text-slate-500 py-10">
+    <div class="max-w-5xl mx-auto px-4 text-center">
+      <div class="flex justify-center gap-4 mb-4 text-sm">
+        <a href="index.html" class="text-slate-600 hover:text-sky-600 transition-colors">トップページ</a>
+        <span class="text-slate-300 hidden sm:inline">|</span>
+        <a href="privacy.html" class="text-slate-600 hover:text-sky-600 transition-colors">プライバシーポリシー</a>
+        <span class="text-slate-300 hidden sm:inline">|</span>
+        <a href="mailto:okidoki.app.dev@gmail.com" class="text-slate-600 hover:text-sky-600 transition-colors">お問い合わせ</a>
+      </div>
+
+      <p class="text-xs text-slate-400 mb-2">
+        &copy; 2026 沖ドキ！有利区間ゲーム数計算ツール
+      </p>
+
+      <p class="text-xs text-slate-400">
+        ※「沖ドキ！」はユニバーサルエンターテインメントの登録商標です
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>

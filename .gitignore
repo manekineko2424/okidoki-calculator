@@ -6,3 +6,6 @@
 
 # Remotion project (promotional video)
 remotion/
+
+# Node modules
+app-lp/mockup-renderer/node_modules/

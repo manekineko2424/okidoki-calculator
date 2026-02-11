@@ -1,0 +1,24 @@
+{
+  "name": "mockup-renderer",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "preview": "remotion preview src/index.ts",
+    "render:all": "npm run render:hero && npm run render:1 && npm run render:2 && npm run render:3",
+    "render:hero": "remotion still src/index.ts MockupHero --output ../assets/images/screenshot-hero.png",
+    "render:1": "remotion still src/index.ts MockupFeature1 --output ../assets/images/screenshot-01.png",
+    "render:2": "remotion still src/index.ts MockupFeature2 --output ../assets/images/screenshot-02.png",
+    "render:3": "remotion still src/index.ts MockupFeature3 --output ../assets/images/screenshot-03.png"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.248",
+    "react": "^19",
+    "react-dom": "^19",
+    "remotion": "4.0.248"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}

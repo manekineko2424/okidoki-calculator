@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>沖ドキ！有利区間ゲーム数計算ツール - 有利区間の残りG数を自動計算</title>
+  <meta name="description" content="パチスロ「沖ドキ！」シリーズの有利区間ゲーム数をリアルタイムで自動計算。ブラック・ゴールド・ゴージャスに対応。完全無料・広告なし。">
+  <meta name="keywords" content="沖ドキ,パチスロ,有利区間,ゲーム数,計算,ツール,ブラック,ゴールド,ゴージャス,天国">
+
+  <!-- OGP -->
+  <meta property="og:title" content="沖ドキ！有利区間ゲーム数計算ツール">
+  <meta property="og:description" content="有利区間の残りG数を、自動で計算。完全無料・広告なし。">
+  <meta property="og:image" content="assets/images/og-image.png">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ja_JP">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS v4 CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          screens: {
+            'xs': '390px',
+          },
+          fontFamily: {
+            sans: ['"Noto Sans JP"', 'sans-serif'],
+          },
+          colors: {
+            ocean: {
+              500: '#0EA5E9',
+              400: '#38BDF8',
+            },
+            coral: '#F97316',
+            dark: '#0F172A',
+          },
+        },
+      },
+    }
+  </script>
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <!-- JS無効時: アニメーション要素を即座に表示 -->
+  <noscript>
+    <style>.fade-in-up { opacity: 1 !important; transform: none !important; }</style>
+  </noscript>
+</head>
+<body class="font-sans text-slate-700 bg-white">
+
+  <!-- ========== 1. Hero Section ========== -->
+  <section class="hero-fade relative bg-gradient-to-br from-sky-600 via-sky-500 to-sky-400 text-white overflow-hidden min-h-screen">
+    <div class="max-w-5xl mx-auto px-4 pt-4 pb-4 xs:pt-6 xs:pb-8 md:pt-24 md:pb-40 text-center flex flex-col items-center justify-center min-h-screen">
+      <!-- App Icon -->
+      <img src="assets/images/app-icon.png" alt="アプリアイコン"
+           class="mx-auto rounded-[22px] shadow-lg mb-2 xs:mb-3 w-16 xs:w-20">
+
+      <!-- App Name -->
+      <h1 class="text-2xl xs:text-3xl md:text-5xl font-black mb-2 xs:mb-3 leading-tight">
+        沖ドキ！有利区間<br class="md:hidden">ゲーム数計算ツール
+      </h1>
+
+      <!-- Tagline -->
+      <p class="text-base xs:text-lg md:text-xl opacity-90 mb-2 xs:mb-4">
+        有利区間の残りG数を、自動で計算。
+      </p>
+
+      <!-- App Store Badge -->
+      <a href="https://apps.apple.com/jp/app/id6758393837" class="app-store-badge inline-block mb-2 xs:mb-3" aria-label="App Storeからダウンロード">
+        <img src="assets/images/app-store-badge.svg" alt="App Storeからダウンロード" class="h-[40px] xs:h-[50px] md:h-[60px]">
+      </a>
+
+      <!-- Phone Mockup -->
+      <img src="assets/images/og-image.png" alt="アプリのメイン画面" loading="eager"
+           class="mx-auto w-[160px] xs:w-[200px] md:w-[400px] drop-shadow-2xl">
+    </div>
+
+  </section>
+
+  <!-- ========== 2. Problem Section ========== -->
+  <section class="py-10 md:py-24 bg-white">
+    <div class="max-w-3xl mx-auto px-4 text-center">
+      <h2 class="fade-in-up text-2xl md:text-3xl font-black text-slate-900 mb-6 md:mb-12">
+        有利区間の計算、<br class="md:hidden">まだ電卓でやってませんか？
+      </h2>
+
+      <div class="grid gap-4 md:gap-8 md:grid-cols-3 mb-6 md:mb-12">
+        <div class="fade-in-up delay-1">
+          <div class="text-4xl mb-3">&#x1F4F1;</div>
+          <p class="text-lg font-bold text-slate-800">毎回の電卓計算が面倒...</p>
+        </div>
+        <div class="fade-in-up delay-2">
+          <div class="text-4xl mb-3">&#x1F4DD;</div>
+          <p class="text-lg font-bold text-slate-800">打ちながらメモが追いつかない...</p>
+        </div>
+        <div class="fade-in-up delay-3">
+          <div class="text-4xl mb-3">&#x1F635;</div>
+          <p class="text-lg font-bold text-slate-800">計算ミスで有利区間を見逃した...</p>
+        </div>
+      </div>
+
+      <p class="fade-in-up text-lg md:text-2xl font-bold text-sky-600">
+        このアプリが、すべて自動で解決します。
+      </p>
+    </div>
+  </section>
+
+  <!-- ========== 3. Features Section ========== -->
+  <section class="py-10 md:py-24 bg-slate-50">
+    <div class="max-w-5xl mx-auto px-4">
+      <h2 class="fade-in-up text-2xl md:text-3xl font-black text-slate-900 text-center mb-6 md:mb-12">
+        主な機能
+      </h2>
+
+      <div class="grid gap-6 md:gap-8 md:grid-cols-3">
+        <!-- Feature 1 -->
+        <div class="fade-in-up delay-1 feature-card bg-white rounded-2xl shadow-md overflow-hidden">
+          <img src="assets/images/screenshot-01.png" alt="残りゲーム数を自動計算" loading="lazy"
+               class="w-full max-w-[320px] mx-auto">
+          <div class="p-4 md:p-6">
+            <h3 class="text-lg font-bold text-slate-900 mb-2">残りゲーム数を自動計算</h3>
+            <p class="text-sm text-slate-600">G数を入力するだけ。残りの有利区間がひと目でわかります。</p>
+          </div>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="fade-in-up delay-2 feature-card bg-white rounded-2xl shadow-md overflow-hidden">
+          <img src="assets/images/screenshot-02.png" alt="当選履歴をカンタン管理" loading="lazy"
+               class="w-full max-w-[320px] mx-auto">
+          <div class="p-4 md:p-6">
+            <h3 class="text-lg font-bold text-slate-900 mb-2">当選履歴をカンタン管理</h3>
+            <p class="text-sm text-slate-600">RB・BB・最終の履歴を一覧管理。リセット位置もひと目で確認。</p>
+          </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="fade-in-up delay-3 feature-card bg-white rounded-2xl shadow-md overflow-hidden">
+          <img src="assets/images/screenshot-03.png" alt="3機種+カスタムに対応" loading="lazy"
+               class="w-full max-w-[320px] mx-auto">
+          <div class="p-4 md:p-6">
+            <h3 class="text-lg font-bold text-slate-900 mb-2">3機種 + カスタムに対応</h3>
+            <p class="text-sm text-slate-600">ブラック・ゴールド・ゴージャス＋カスタム設定に対応。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 4. How To Use Section ========== -->
+  <section class="py-10 md:py-24 bg-white">
+    <div class="max-w-3xl mx-auto px-4">
+      <h2 class="fade-in-up text-2xl md:text-3xl font-black text-slate-900 text-center mb-6 md:mb-12">
+        使い方はカンタン3ステップ
+      </h2>
+
+      <div class="space-y-6 md:space-y-8">
+        <!-- Step 1 -->
+        <div class="fade-in-up delay-1 flex items-start gap-5">
+          <div class="step-number bg-sky-500 text-white">1</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 mb-1">機種を選ぶ</h3>
+            <p class="text-slate-600">下部のタブから機種を選択します。</p>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="fade-in-up delay-2 flex items-start gap-5">
+          <div class="step-number bg-sky-500 text-white">2</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 mb-1">G数を入力</h3>
+            <p class="text-slate-600">G数を入力して RB / BB / 最終 をタップ。</p>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="fade-in-up delay-3 flex items-start gap-5">
+          <div class="step-number bg-sky-500 text-white">3</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 mb-1">結果を確認</h3>
+            <p class="text-slate-600">残りG数が自動で計算・表示されます。</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="fade-in-up text-center mt-10">
+        <a href="guide.html"
+           class="text-sky-600 font-bold hover:text-sky-700 underline underline-offset-4 transition-colors">
+          詳しい使い方はこちら &rarr;
+        </a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ========== 5. Supported Models Section ========== -->
+  <section class="py-10 md:py-24 bg-sky-50">
+    <div class="max-w-5xl mx-auto px-4">
+      <h2 class="fade-in-up text-2xl md:text-3xl font-black text-slate-900 text-center mb-6 md:mb-12">
+        対応機種
+      </h2>
+
+      <div class="grid gap-4 md:gap-6 md:grid-cols-3 mb-8">
+        <!-- Black -->
+        <div class="fade-in-up delay-1 model-card-black bg-white rounded-2xl shadow-md p-4 md:p-6 text-center">
+          <h3 class="text-xl font-bold text-slate-900 mb-2 md:mb-4">ブラック</h3>
+          <div class="space-y-2 text-sm text-slate-600">
+            <p><span class="font-bold text-slate-800">RB内部加算:</span> +24G</p>
+            <p><span class="font-bold text-slate-800">BB内部加算:</span> +59G</p>
+            <p><span class="font-bold text-slate-800">有利区間上限:</span> 2000G</p>
+          </div>
+        </div>
+
+        <!-- Gold -->
+        <div class="fade-in-up delay-2 model-card-gold bg-white rounded-2xl shadow-md p-4 md:p-6 text-center">
+          <h3 class="text-xl font-bold text-slate-900 mb-2 md:mb-4">ゴールド</h3>
+          <div class="space-y-2 text-sm text-slate-600">
+            <p><span class="font-bold text-slate-800">RB内部加算:</span> +29G</p>
+            <p><span class="font-bold text-slate-800">BB内部加算:</span> +69G</p>
+            <p><span class="font-bold text-slate-800">有利区間上限:</span> 2000G</p>
+          </div>
+        </div>
+
+        <!-- Gorgeous -->
+        <div class="fade-in-up delay-3 model-card-gorgeous bg-white rounded-2xl shadow-md p-4 md:p-6 text-center">
+          <h3 class="text-xl font-bold text-slate-900 mb-2 md:mb-4">ゴージャス</h3>
+          <div class="space-y-2 text-sm text-slate-600">
+            <p><span class="font-bold text-slate-800">RB内部加算:</span> +24G</p>
+            <p><span class="font-bold text-slate-800">BB内部加算:</span> +59G</p>
+            <p><span class="font-bold text-slate-800">有利区間上限:</span> 3000G</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="fade-in-up text-center text-slate-600">
+        + カスタム設定で任意の数値にも対応
+      </p>
+    </div>
+  </section>
+
+  <!-- ========== 6. Trust Section ========== -->
+  <section class="py-10 md:py-20 bg-white">
+    <div class="max-w-3xl mx-auto px-4">
+      <h2 class="fade-in-up text-2xl md:text-3xl font-black text-slate-900 text-center mb-6 md:mb-10">
+        安心して使えます
+      </h2>
+
+      <div class="grid gap-6 md:grid-cols-3">
+        <div class="fade-in-up delay-1 text-center p-4 md:p-6 bg-slate-50 rounded-2xl">
+          <div class="text-3xl mb-3">&#x1F512;</div>
+          <p class="font-bold text-slate-800">データは端末内のみ保存</p>
+          <p class="text-sm text-slate-500 mt-1">外部サーバーへの送信なし</p>
+        </div>
+
+        <div class="fade-in-up delay-2 text-center p-4 md:p-6 bg-slate-50 rounded-2xl">
+          <div class="text-3xl mb-3">&#x1F4E1;</div>
+          <p class="font-bold text-slate-800">インターネット接続不要</p>
+          <p class="text-sm text-slate-500 mt-1">すべてオフラインで動作</p>
+        </div>
+
+        <div class="fade-in-up delay-3 text-center p-4 md:p-6 bg-slate-50 rounded-2xl">
+          <div class="text-3xl mb-3">&#x1F4B0;</div>
+          <p class="font-bold text-slate-800">完全無料・広告なし</p>
+          <p class="text-sm text-slate-500 mt-1">課金・広告は一切ありません</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 7. CTA Section ========== -->
+  <section class="py-10 md:py-24 bg-gradient-to-br from-sky-600 via-sky-500 to-sky-400 text-white text-center">
+    <div class="max-w-3xl mx-auto px-4">
+      <img src="assets/images/app-icon.png" alt="アプリアイコン" width="80" height="80"
+           class="fade-in-up mx-auto rounded-[18px] shadow-lg mb-6">
+
+      <h2 class="fade-in-up text-2xl md:text-3xl font-black mb-6">
+        今すぐ無料ダウンロード
+      </h2>
+
+      <a href="https://apps.apple.com/jp/app/id6758393837" class="fade-in-up app-store-badge inline-block mb-4" aria-label="App Storeからダウンロード">
+        <img src="assets/images/app-store-badge.svg" alt="App Storeからダウンロード" class="h-[60px] md:h-[67px]">
+      </a>
+
+      <p class="fade-in-up text-sm opacity-80">iOS 17以降対応</p>
+    </div>
+  </section>
+
+  <!-- ========== 8. Footer ========== -->
+  <footer class="bg-white border-t border-slate-200 text-slate-500 py-10">
+    <div class="max-w-5xl mx-auto px-4 text-center">
+      <div class="flex justify-center gap-4 mb-4 text-sm">
+        <a href="privacy.html" class="text-slate-600 hover:text-sky-600 transition-colors">プライバシーポリシー</a>
+        <span class="text-slate-300 hidden sm:inline">|</span>
+        <a href="guide.html" class="text-slate-600 hover:text-sky-600 transition-colors">使い方ガイド</a>
+        <span class="text-slate-300 hidden sm:inline">|</span>
+        <a href="mailto:okidoki.app.dev@gmail.com" class="text-slate-600 hover:text-sky-600 transition-colors">お問い合わせ</a>
+      </div>
+
+      <p class="text-xs text-slate-400 mb-2">
+        &copy; 2026 沖ドキ！有利区間ゲーム数計算ツール
+      </p>
+
+      <p class="text-xs text-slate-400">
+        ※「沖ドキ！」はユニバーサルエンターテインメントの登録商標です
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
