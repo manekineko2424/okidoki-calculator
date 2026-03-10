@@ -8,6 +8,9 @@
 import Foundation
 
 enum AdConfig {
+    /// 広告の有効/無効（開発中はfalse、リリース時にtrueに変更）
+    static let isEnabled = false
+
     static let appID = "ca-app-pub-6638862282281249~5810149582"
 
     #if DEBUG

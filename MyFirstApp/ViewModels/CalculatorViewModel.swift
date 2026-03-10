@@ -16,6 +16,11 @@ class CalculatorViewModel {
     // MARK: - 入力エリア状態（分離型UI用）
 
     var inputGValue: String = ""        // 入力中のゲーム数
+    var inputMode: InputMode = .history // 入力モード（メモリのみ、保存しない）
+    var scrollEventToken: Int = 0       // UI向けスクロールトリガー
+
+    /// 直前に追加した行のID（削除対象の追跡用、永続化しない）
+    private var lastAddedRowId: UUID?
 
     // MARK: - Computed Properties
 
@@ -318,62 +323,140 @@ class CalculatorViewModel {
 
     // MARK: - 分離型UI用アクション
 
-    /// 種別ボタン押下で登録（新規のみ）
+    /// 種別ボタン押下で登録
     func registerEntry(type: HitType?) {
         guard let gValue = parseG(inputGValue), gValue > 0 else { return }
-        addNewEntry(gValue: inputGValue, type: type)
+
+        if type == nil {
+            // 「現在」ボタン
+            if hasCurrentRow {
+                // 既存の現在行を更新（実戦中モード）
+                updateCurrentRowG(gValue: inputGValue)
+                if inputMode == .realtime {
+                    scrollEventToken += 1
+                }
+            } else {
+                // 新規作成
+                addNewEntry(gValue: inputGValue, type: nil)
+            }
+        } else {
+            // hit行を追加
+            addNewEntry(gValue: inputGValue, type: type)
+        }
+    }
+
+    /// 現在行のG数を更新
+    private func updateCurrentRowG(gValue: String) {
+        guard let nowIndex = rows.firstIndex(where: { $0.kind == .now }) else { return }
+        var updatedRows = rows
+        updatedRows[nowIndex].gInput = gValue
+        rows = updatedRows
+
+        // 入力クリア
+        inputGValue = ""
     }
 
     /// 新規エントリ追加
     private func addNewEntry(gValue: String, type: HitType?) {
         var updatedRows = rows
+        var state = currentState
 
         if type == nil {
-            // 「現在」行を追加（初回のみ）
+            // 「現在」行を追加（先頭に挿入）
             let newRow = Row(kind: .now, label: "現在", gInput: gValue)
             updatedRows.insert(newRow, at: 0)
-        } else {
-            // hit行を追加（末尾に追加）
-            let newRow = Row(kind: .hit, label: "", gInput: gValue, type: type!)
-            updatedRows.append(newRow)
-        }
+            lastAddedRowId = newRow.id  // 追跡を更新
 
-        updateLabels(&updatedRows)
-
-        var state = currentState
-        state.rows = updatedRows
-        // 「現在」行（先頭挿入）の場合のみ、全てのインデックスを+1
-        if type == nil {
+            updateLabels(&updatedRows)
+            state.rows = updatedRows
+            // 全てのインデックスを+1
             state.resetIndices = state.resetIndices.map { $0 + 1 }
             if let cut = state.cutIndex {
                 state.cutIndex = cut + 1
             }
+        } else {
+            // hit行を追加
+            let newRow = Row(kind: .hit, label: "", gInput: gValue, type: type!)
+
+            if inputMode == .history {
+                // 履歴入力モード: 末尾に追加
+                updatedRows.append(newRow)
+                updateLabels(&updatedRows)
+                state.rows = updatedRows
+                // インデックス調整不要
+            } else {
+                // 実戦中モード: 現在行の直下（index 1）に挿入
+                let insertIndex = hasCurrentRow ? 1 : 0
+                updatedRows.insert(newRow, at: insertIndex)
+                updateLabels(&updatedRows)
+                state.rows = updatedRows
+                // インデックスを+1調整
+                state.resetIndices = state.resetIndices.map { $0 + 1 }
+                if let cut = state.cutIndex {
+                    state.cutIndex = cut + 1
+                }
+            }
+            lastAddedRowId = newRow.id  // 追跡を更新
         }
-        // hit行（末尾追加）の場合は更新不要
+
         currentState = state
 
         // 入力クリア
         inputGValue = ""
     }
 
-    /// 1つ削除（一番下の行＝最も古い履歴を削除）
+    /// 1つ削除（直前に追加した行を削除）
     func deleteOne() {
         guard !rows.isEmpty else { return }
 
         var updatedRows = rows
-        // 一番下の行（最も古い履歴）を削除
-        updatedRows.removeLast()
+        var state = currentState
+        var deletedIndex: Int?
+
+        // 直前に追加した行を削除
+        if let lastId = lastAddedRowId,
+           let index = updatedRows.firstIndex(where: { $0.id == lastId }) {
+            updatedRows.remove(at: index)
+            deletedIndex = index
+            lastAddedRowId = nil  // 追跡をリセット
+        } else {
+            // フォールバック: 入力モードに応じた削除
+            if inputMode == .history {
+                // 履歴モード: 末尾（最新の履歴）から削除
+                updatedRows.removeLast()
+                deletedIndex = updatedRows.count  // 削除後の末尾位置
+            } else {
+                // 実戦モード: 現在行以外の最新を削除
+                let deleteIndex = updatedRows.first?.kind == .now ? 1 : 0
+                if deleteIndex < updatedRows.count {
+                    updatedRows.remove(at: deleteIndex)
+                    deletedIndex = deleteIndex
+                }
+            }
+        }
 
         updateLabels(&updatedRows)
 
-        var state = currentState
         state.rows = updatedRows
-        // リセットインデックスを範囲内に制限（行数が減った分）
-        state.resetIndices = state.resetIndices.map { min($0, updatedRows.count) }
-        if let cut = state.cutIndex, cut >= updatedRows.count {
-            state.cutIndex = nil
+        // 削除位置に基づいてインデックスを調整
+        if let idx = deletedIndex {
+            state.resetIndices = state.resetIndices.map { $0 > idx ? $0 - 1 : $0 }
+            state.resetIndices = state.resetIndices.map { min($0, updatedRows.count) }
+            if let cut = state.cutIndex {
+                if cut > idx {
+                    state.cutIndex = cut - 1
+                }
+                if state.cutIndex ?? 0 >= updatedRows.count {
+                    state.cutIndex = nil
+                }
+            }
         }
         currentState = state
+
+        // 履歴が空になったらモードを履歴入力にリセット
+        if updatedRows.isEmpty {
+            inputMode = .history
+        }
     }
 
     /// 全削除
@@ -383,6 +466,20 @@ class CalculatorViewModel {
         state.resetIndices = []  // 全バー削除
         state.cutIndex = nil
         currentState = state
+        // モードを履歴入力にリセット
+        inputMode = .history
+        // 追跡をリセット
+        lastAddedRowId = nil
+    }
+
+    /// 入力モードを切り替え
+    func toggleInputMode() {
+        inputMode = inputMode.toggled
+    }
+
+    /// 入力モードをリセット（履歴入力モードに戻す）
+    func resetInputMode() {
+        inputMode = .history
     }
 
     /// リセットバーを追加（最下部）

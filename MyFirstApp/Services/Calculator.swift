@@ -119,9 +119,9 @@ enum Calculator {
             isOKCut = false
         }
 
-        // Step 5: 下側累積（表示専用）
+        // Step 5: 下側累積（表示専用）古い行から累積（上側と同方向）
         var lowerAccum = 0
-        for i in primaryResetIndex..<state.rows.count {
+        for i in stride(from: state.rows.count - 1, through: primaryResetIndex, by: -1) {
             let row = state.rows[i]
             if row.kind == .hit, let g = parseG(row.gInput) {
                 let addG = getAddG(type: row.type, rbAdd: rbAdd, bbAdd: bbAdd)

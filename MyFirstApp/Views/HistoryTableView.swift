@@ -28,23 +28,12 @@ struct HistoryTableView: View {
         VStack(spacing: 0) {
             // ヘッダー
             HistoryHeaderView()
+                .id("historyHeader")
                 .background(Color(.systemGray5))
 
             if entries.isEmpty {
-                // 空状態
-                VStack(spacing: 8) {
-                    Image(systemName: "list.bullet.rectangle")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.tertiary)
-                    Text("履歴がありません")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Text("G数を入力して種別を選択してください")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 40)
+                // 空状態 - モード別の詳細説明
+                emptyStateView
             } else {
                 // 履歴リスト（リセットバーを行間に配置）
                 VStack(spacing: 0) {
@@ -103,6 +92,90 @@ struct HistoryTableView: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Color(.systemGray4), lineWidth: 1)
         )
+    }
+
+    /// 空状態の表示
+    private var emptyStateView: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "list.bullet.rectangle")
+                .font(.system(size: 40))
+                .foregroundStyle(.tertiary)
+            Text("履歴がありません")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            VStack(alignment: .leading, spacing: 12) {
+                // モード切り替え説明
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("モード切り替え")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                    bulletItem("入力欄右端のボタンでモード切替")
+                }
+
+                Divider()
+
+                // 履歴入力モード説明
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 4) {
+                        Image(systemName: InputMode.history.iconNameFill)
+                            .font(.caption)
+                            .foregroundColor(InputMode.history.color)
+                        Text("履歴入力モード")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(InputMode.history.color)
+                    }
+                    bulletItem("新しい履歴は下に追加")
+                    bulletItem("最新から順に登録")
+                }
+
+                Divider()
+
+                // 実戦入力モード説明
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 4) {
+                        Image(systemName: InputMode.realtime.iconNameFill)
+                            .font(.caption)
+                            .foregroundColor(InputMode.realtime.color)
+                        Text("実戦入力モード")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(InputMode.realtime.color)
+                    }
+                    bulletItem("新しい履歴は上に追加")
+                    bulletItem("現在Gの編集可能")
+                }
+
+                Divider()
+
+                // おすすめの使い方
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("おすすめの使い方")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                    bulletItem("台の途中から：履歴→実戦に切替")
+                    bulletItem("朝一から：最初から実戦モード")
+                }
+            }
+            .padding(.horizontal, 20)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 24)
+    }
+
+    /// 箇条書きアイテム
+    private func bulletItem(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: 6) {
+            Text("•")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+            Text(text)
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
     }
 
 }

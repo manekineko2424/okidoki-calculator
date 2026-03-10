@@ -2,7 +2,7 @@
 //  InputAreaView.swift
 //  MyFirstApp
 //
-//  分離型UI - 入力エリア（シンプル版）
+//  分離型UI - 入力エリア（Chrome AI風デザイン）
 //
 
 import SwiftUI
@@ -10,38 +10,45 @@ import SwiftUI
 /// 入力エリア
 struct InputAreaView: View {
     @Binding var gInput: String
+    @Binding var inputMode: InputMode
     let hasCurrentRow: Bool  // 「現在」行が既に存在するか
+    let isFirstEntry: Bool   // 履歴が空かどうか
     let onRegister: (HitType?) -> Void  // 登録コールバック（nilは「現在」）
 
     @FocusState private var isInputFocused: Bool
 
+    /// モード切替が有効か（履歴がある場合のみ）
+    private var isModeToggleEnabled: Bool {
+        hasCurrentRow
+    }
+
     var body: some View {
         VStack(spacing: 8) {
-            // G数入力フィールド
-            Text("G数を入力")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            HStack(spacing: 12) {
-                TextField("0", text: $gInput)
+            // G数入力フィールド + モード切替ボタン（入力欄内）
+            HStack(spacing: 8) {
+                TextField("ゲーム数", text: $gInput)
                     .keyboardType(.numberPad)
                     .font(.system(size: 24, weight: .semibold, design: .rounded))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 6)
-                    .background(Color(.systemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(isInputFocused ? Color.accentColor : Color(.systemGray4), lineWidth: isInputFocused ? 2 : 1)
-                    )
+                    .multilineTextAlignment(.leading)
                     .focused($isInputFocused)
 
-                Text("G")
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundStyle(.secondary)
+                // モード切替ボタン（Chrome AI風、常に表示）
+                ModeToggleButton(
+                    mode: inputMode,
+                    isEnabled: isModeToggleEnabled,
+                    modeColor: inputMode.color
+                ) {
+                    inputMode = inputMode.toggled
+                }
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isInputFocused ? Color.accentColor : Color(.systemGray4), lineWidth: isInputFocused ? 2 : 1)
+            )
 
             // 種別ボタン（タップで即登録）
             Text("種別を選択して登録")
@@ -49,9 +56,9 @@ struct InputAreaView: View {
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            HStack(spacing: 10) {
-                // 「現在」ボタン（現在行がない場合のみ有効）
-                if !hasCurrentRow {
+            if !hasCurrentRow {
+                // 履歴なし: 「現在」ボタンのみ表示
+                HStack(spacing: 10) {
                     RegisterButton(
                         title: "現在",
                         color: .gray,
@@ -60,32 +67,44 @@ struct InputAreaView: View {
                         onRegister(nil)
                     }
                 }
+            } else {
+                // 履歴あり: 4つのボタンを表示（モードで有効/無効を制御）
+                HStack(spacing: 10) {
+                    // 「現在」ボタン（実戦中モードのみ有効）
+                    RegisterButton(
+                        title: "現在",
+                        color: .gray,
+                        isEnabled: isValidInput && inputMode == .realtime
+                    ) {
+                        onRegister(nil)
+                    }
 
-                // RBボタン
-                RegisterButton(
-                    title: "RB",
-                    color: .blue,
-                    isEnabled: isValidInput && hasCurrentRow
-                ) {
-                    onRegister(.rb)
-                }
+                    // RBボタン（両モードで有効）
+                    RegisterButton(
+                        title: "RB",
+                        color: .blue,
+                        isEnabled: isValidInput
+                    ) {
+                        onRegister(.rb)
+                    }
 
-                // BBボタン
-                RegisterButton(
-                    title: "BB",
-                    color: .red,
-                    isEnabled: isValidInput && hasCurrentRow
-                ) {
-                    onRegister(.bb)
-                }
+                    // BBボタン（両モードで有効）
+                    RegisterButton(
+                        title: "BB",
+                        color: .red,
+                        isEnabled: isValidInput
+                    ) {
+                        onRegister(.bb)
+                    }
 
-                // 最終ボタン
-                RegisterButton(
-                    title: "最終",
-                    color: .primary,
-                    isEnabled: isValidInput && hasCurrentRow
-                ) {
-                    onRegister(.fin)
+                    // 最終ボタン（履歴入力モードのみ有効）
+                    RegisterButton(
+                        title: "最終",
+                        color: .primary,
+                        isEnabled: isValidInput && inputMode == .history
+                    ) {
+                        onRegister(.fin)
+                    }
                 }
             }
         }
@@ -95,11 +114,48 @@ struct InputAreaView: View {
         .onAppear {
             isInputFocused = true
         }
+        .onChange(of: isFirstEntry) { _, newValue in
+            // 履歴が空になったらモードをリセット
+            if newValue {
+                inputMode = .history
+            }
+        }
     }
 
     private var isValidInput: Bool {
         guard let value = Int(gInput), value > 0 else { return false }
         return true
+    }
+}
+
+/// モード切替ボタン（Chrome AI風 Capsule）
+struct ModeToggleButton: View {
+    let mode: InputMode
+    let isEnabled: Bool
+    let modeColor: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Image(systemName: mode.iconNameFill)
+                    .font(.system(size: 14))
+                Text(mode.displayName)
+                    .font(.system(size: 12, weight: .medium))
+            }
+            .foregroundColor(isEnabled ? modeColor : .gray)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(isEnabled ? modeColor.opacity(0.15) : Color(.systemGray5))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(isEnabled ? modeColor.opacity(0.3) : Color(.systemGray4), lineWidth: 1)
+            )
+        }
+        .disabled(!isEnabled)
     }
 }
 
@@ -128,7 +184,9 @@ struct RegisterButton: View {
     VStack {
         InputAreaView(
             gInput: .constant("100"),
+            inputMode: .constant(.history),
             hasCurrentRow: false,
+            isFirstEntry: true,
             onRegister: { _ in }
         )
         .padding()
@@ -136,11 +194,27 @@ struct RegisterButton: View {
     .background(Color(.systemBackground))
 }
 
-#Preview("通常入力（現在行あり）") {
+#Preview("履歴入力モード") {
     VStack {
         InputAreaView(
             gInput: .constant("200"),
+            inputMode: .constant(.history),
             hasCurrentRow: true,
+            isFirstEntry: false,
+            onRegister: { _ in }
+        )
+        .padding()
+    }
+    .background(Color(.systemBackground))
+}
+
+#Preview("実戦中モード") {
+    VStack {
+        InputAreaView(
+            gInput: .constant("200"),
+            inputMode: .constant(.realtime),
+            hasCurrentRow: true,
+            isFirstEntry: false,
             onRegister: { _ in }
         )
         .padding()

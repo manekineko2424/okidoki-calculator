@@ -29,7 +29,7 @@ struct HistoryRowView: View {
                 .frame(width: 60, alignment: .center)
 
             // 当選G数列
-            Text("\(entry.gValue)G")
+            Text(String(entry.gValue) + "G")
                 .font(.system(size: 14))
                 .frame(width: 70, alignment: .center)
 

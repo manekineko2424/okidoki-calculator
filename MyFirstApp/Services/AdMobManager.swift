@@ -24,6 +24,10 @@ final class AdMobManager: NSObject, ObservableObject {
 
     /// AdMob SDKを初期化
     func initialize() {
+        guard AdConfig.isEnabled else {
+            print("[AdMob] Ads disabled")
+            return
+        }
         GADMobileAds.sharedInstance().start { status in
             print("[AdMob] SDK initialized: \(status.adapterStatusesByClassName)")
             Task { @MainActor in
@@ -54,6 +58,8 @@ final class AdMobManager: NSObject, ObservableObject {
 
     /// インタースティシャル広告を表示
     func showInterstitialAd() {
+        guard AdConfig.isEnabled else { return }
+
         // 最小間隔チェック
         if let lastShow = lastInterstitialShowTime {
             let elapsed = Date().timeIntervalSince(lastShow)

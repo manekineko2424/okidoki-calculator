@@ -13,6 +13,7 @@ struct ContentView: View {
     @State private var viewModel = CalculatorViewModel()
     @State private var showSettings = false
     @State private var showClearConfirm = false
+    @State private var showHelp = false
     @State private var isKeyboardVisible = false
     @State private var modelSwitchCount = 0
 
@@ -24,7 +25,9 @@ struct ContentView: View {
             // 入力エリア（固定・ScrollViewの外）
             InputAreaView(
                 gInput: $viewModel.inputGValue,
+                inputMode: $viewModel.inputMode,
                 hasCurrentRow: viewModel.hasCurrentRow,
+                isFirstEntry: viewModel.isFirstEntry,
                 onRegister: { type in
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         viewModel.registerEntry(type: type)
@@ -137,19 +140,35 @@ struct ContentView: View {
                     }
                 }
                 .onChange(of: viewModel.historyEntries.count) { _, _ in
-                    if let lastEntry = viewModel.historyEntries.last {
+                    // モードによってスクロール方向を切り替え
+                    if viewModel.inputMode == .realtime {
+                        // 実戦モード: ヘッダーにスクロール
                         withAnimation(.easeOut(duration: 0.3)) {
-                            scrollProxy.scrollTo(lastEntry.id, anchor: .bottom)
+                            scrollProxy.scrollTo("historyHeader", anchor: .top)
                         }
+                    } else {
+                        // 履歴モード: 下部にスクロール
+                        if let lastEntry = viewModel.historyEntries.last {
+                            withAnimation(.easeOut(duration: 0.3)) {
+                                scrollProxy.scrollTo(lastEntry.id, anchor: .bottom)
+                            }
+                        }
+                    }
+                }
+                .onChange(of: viewModel.scrollEventToken) { _, _ in
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        scrollProxy.scrollTo("historyHeader", anchor: .top)
                     }
                 }
             }
 
             // 下部: バナー広告 + 機種選択タブバー（キーボード非表示時のみ表示）
             if !isKeyboardVisible {
-                // バナー広告
-                BannerAdView(adUnitID: AdConfig.bannerAdUnitID)
-                    .frame(height: BannerAdHeight.adaptive)
+                // バナー広告（広告有効時のみ）
+                if AdConfig.isEnabled {
+                    BannerAdView(adUnitID: AdConfig.bannerAdUnitID)
+                        .frame(height: BannerAdHeight.adaptive)
+                }
 
                 MachineTabBar(
                     selectedModel: Binding(
@@ -169,7 +188,11 @@ struct ContentView: View {
                     showSettings = false
                 }
             )
-            .presentationDetents([.medium])
+            .presentationDetents([.large])
+        }
+        .sheet(isPresented: $showHelp) {
+            HelpSheetView()
+                .presentationDetents([.large])
         }
         .alert("すべての入力を削除しますか？", isPresented: $showClearConfirm) {
             Button("削除", role: .destructive) {
@@ -203,7 +226,7 @@ struct ContentView: View {
         .background(Color(.systemBackground).ignoresSafeArea())
     }
 
-    // ヘッダーセクション（KPI + 設定ボタン）
+    // ヘッダーセクション（KPI + 設定ボタン + ヘルプボタン）
     private var headerSection: some View {
         VStack(spacing: 8) {
             // タイトル行
@@ -212,6 +235,16 @@ struct ContentView: View {
                     .font(.system(size: 15, weight: .bold))
 
                 Spacer()
+
+                // ヘルプボタン
+                Button {
+                    showHelp = true
+                } label: {
+                    Image(systemName: "questionmark.circle")
+                        .font(.system(size: 18))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.trailing, 8)
 
                 // 設定ボタン
                 Button {
