@@ -33,6 +33,7 @@ jobs:
           mkdir _site
           cp app-lp/index.html app-lp/guide.html app-lp/privacy.html _site/
           cp app-lp/robots.txt app-lp/sitemap.xml _site/
+          cp app-lp/version.json _site/
           cp app-lp/google1d149877029f3f62.html _site/
           cp -r app-lp/assets _site/assets
 
