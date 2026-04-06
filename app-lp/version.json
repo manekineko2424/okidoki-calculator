@@ -1,7 +1,7 @@
 {
-  "minimum_supported_version": "1.2.0",
-  "recommended_version": "1.2.0",
-  "update_message": "最新版では不具合修正と改善が反映されています。",
+  "minimum_supported_version": "1.2.1",
+  "recommended_version": "1.2.1",
+  "update_message": "このバージョンはご利用いただけません。App Store から最新版 1.2.1 にアップデートしてください。",
   "app_store_url": "https://apps.apple.com/jp/app/id6758393837",
   "enabled": true
 }
